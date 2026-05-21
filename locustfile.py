@@ -4,8 +4,8 @@ Locust load-test file.
 This file is INDEPENDENT — it does NOT import from the app package.
 It can be pointed at any host that implements the unified API schema.
 
-On start, it calls GET /info to determine the input_type, then generates
-appropriate content for POST /run requests.
+On start, it calls GET /info once to determine the input_type, then
+generates appropriate content for POST /run requests.
 """
 import base64
 import io
@@ -60,7 +60,7 @@ def _random_text(length: int = 120) -> str:
 
 
 class APIUser(HttpUser):
-    """Locust user that load-tests /info and /run endpoints."""
+    """Locust user that load-tests /run endpoint."""
 
     wait_time = between(0.5, 2.0)
     host: str = os.environ.get("LOCUST_HOST", "http://localhost:8000")
@@ -95,10 +95,6 @@ class APIUser(HttpUser):
                 "extra_body": {},
             }
 
-    @task(10)
+    @task
     def run_service(self) -> None:
         self.client.post("/run", json=self._build_run_payload())
-
-    @task(1)
-    def get_info(self) -> None:
-        self.client.get("/info")
